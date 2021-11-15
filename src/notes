@@ -1,0 +1,4 @@
+                    let test = [
+                      currentValues.letters[arrayLength][0] + column,
+                      currentValues.letters[arrayLength][1] + row,
+                    ];
