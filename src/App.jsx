@@ -30,8 +30,12 @@ function App() {
     "Y",
     "Z",
   ]);
+
+  let gridSize = 10;
   const [gridArray, setGridArray] = useState(
-    Array.from({ length: 10 }, () => Array.from({ length: 10 }, () => 0))
+    Array.from({ length: gridSize }, () =>
+      Array.from({ length: gridSize }, () => "")
+    )
   );
   const [globalMouseDown, setGlobablMouseDown] = useState(null);
   const [allValues, setAllValues] = useState({ letters: [], coordinates: [] });
@@ -44,16 +48,16 @@ function App() {
     console.log(currentValues.coordinates);
   }, [currentValues]);
 
-  useEffect(() => {
-    //On load fill grid with random letters
-    const newArr = [...gridArray];
-    newArr.map((item, column) =>
-      item.map((box, row) => {
-        newArr[column][row] = alphabet[Math.floor(Math.random() * 25)];
-        setGridArray(newArr);
-      })
-    );
-  }, []);
+  // useEffect(() => {
+  //   //On load fill grid with random letters
+  //   const newArr = [...gridArray];
+  //   newArr.map((item, column) =>
+  //     item.map((box, row) => {
+  //       newArr[column][row] = alphabet[Math.floor(Math.random() * 25)];
+  //       setGridArray(newArr);
+  //     })
+  //   );
+  // }, []);
   useEffect(() => {
     const onMouseDown = (event) => setGlobablMouseDown(true);
     window.addEventListener("mousedown", onMouseDown);
@@ -86,9 +90,109 @@ function App() {
       coordinates: [...prevState.coordinates, [column, row]],
     }));
   }
+  function isAround(column, row, arr) {
+    let positions = [
+      [0, 1],
+      [1, 0],
+      [1, 1],
+      [-1, -1],
+      [0, -1],
+      [-1, 0],
+      [-1, 1],
+      [1, -1],
+    ];
+    let columnTest = column - arr[arr.length - 1][0];
+    let rowTest = row - arr[arr.length - 1][1];
+    let tester = [columnTest, rowTest];
+    return positions.some((a) => tester.every((v, i) => v === a[i]));
+  }
+
+  function compare(column, row) {
+    var arrayLength = currentValues.coordinates.length;
+    let requiredDirection = [
+      currentValues.coordinates[1][0] - currentValues.coordinates[0][0],
+      currentValues.coordinates[1][1] - currentValues.coordinates[0][1],
+    ];
+    let nextDirection = [
+      column - currentValues.coordinates[arrayLength - 1][0],
+      row - currentValues.coordinates[arrayLength - 1][1],
+    ];
+    return (
+      nextDirection[0] === requiredDirection[0] &&
+      nextDirection[1] === requiredDirection[1]
+    );
+  }
+
+  function addWords() {
+    let words = ["potato"];
+
+    words.map((word) => {
+      setSuitableWordPlacement(word);
+    });
+  }
+
+  function setSuitableWordPlacement(word) {
+    let positions = [
+      [0, 1],
+      [1, 0],
+      [1, 1],
+      [-1, -1],
+      [0, -1],
+      [-1, 0],
+      [-1, 1],
+      [1, -1],
+    ];
+    let choosenDirection =
+      positions[Math.floor(Math.random() * positions.length)];
+    let startingPosition = [
+      calculateStartPoint(choosenDirection[0], word.length),
+      calculateStartPoint(choosenDirection[1], word.length),
+    ];
+    let lengthMatches = 0;
+    let prevPosition = startingPosition;
+
+    for (let i = 0; i < word.length; i++) {
+      if (
+        gridArray[choosenDirection[0] + prevPosition[0]][
+          choosenDirection[1] + prevPosition[1]
+        ] === ""
+      ) {
+        prevPosition = [
+          choosenDirection[0] + prevPosition[0],
+          choosenDirection[1] + prevPosition[1],
+        ];
+        lengthMatches++;
+      } else {
+        break;
+      }
+    }
+    if (lengthMatches === word.length) {
+      return true;
+    } else {
+      setSuitableWordPlacement(word);
+    }
+  }
+
+  function calculateStartPoint(value, wordLength) {
+    let highestValue = gridSize - wordLength;
+    switch (value) {
+      case 0:
+        return Math.floor(Math.random() * 10);
+      case 1:
+        return Math.floor(Math.random() * highestValue);
+      case -1:
+        return Math.floor(
+          Math.random() * (gridSize - wordLength + 1) + wordLength
+        );
+
+      default:
+        return;
+    }
+  }
 
   return (
     <>
+      <button onClick={() => addWords()}>test</button>
       <div className="grid">
         {gridArray.map((item, row) =>
           item.map((box, column) => (
@@ -106,41 +210,32 @@ function App() {
               }}
               onMouseEnter={() => {
                 var arrayLength = currentValues.coordinates.length;
-                if (globalMouseDown === true) {
-                  if (currentValues.coordinates.length > 1) {
-                    if (
-                      column ===
-                        currentValues.coordinates[arrayLength - 2][0] &&
-                      row === currentValues.coordinates[arrayLength - 2][1]
-                    ) {
-                      //delete the previous input
-                      let arrLastRemoved = [...currentValues.coordinates];
-                      arrLastRemoved.pop();
-                      setCurrentValues((prevState) => ({
-                        ...prevState,
-                        coordinates: [...arrLastRemoved],
-                      }));
-                    } else {
-                      let requiredDirection = [
-                        currentValues.coordinates[1][0] -
-                          currentValues.coordinates[0][0],
-                        currentValues.coordinates[1][1] -
-                          currentValues.coordinates[0][1],
-                      ];
-                      let nextDirection = [
-                        column - currentValues.coordinates[arrayLength - 1][0],
-                        row - currentValues.coordinates[arrayLength - 1][1],
-                      ];
+                if (currentValues.coordinates < 1 && globalMouseDown === true) {
+                  //Stops the website erroring if the user starts there click outside of the grid
+                  setArrays(column, row);
+                } else if (globalMouseDown === true) {
+                  if (isAround(column, row, currentValues.coordinates))
+                    if (currentValues.coordinates.length > 1) {
                       if (
-                        nextDirection[0] === requiredDirection[0] &&
-                        nextDirection[1] === requiredDirection[1]
+                        column ===
+                          currentValues.coordinates[arrayLength - 2][0] &&
+                        row === currentValues.coordinates[arrayLength - 2][1]
                       ) {
-                        setArrays(column, row);
+                        //delete the previous input
+                        let arrLastRemoved = [...currentValues.coordinates];
+                        arrLastRemoved.pop();
+                        setCurrentValues((prevState) => ({
+                          ...prevState,
+                          coordinates: [...arrLastRemoved],
+                        }));
+                      } else {
+                        if (compare(column, row)) {
+                          setArrays(column, row);
+                        }
                       }
+                    } else {
+                      setArrays(column, row);
                     }
-                  } else {
-                    setArrays(column, row);
-                  }
                 }
               }}
             >
