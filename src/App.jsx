@@ -34,7 +34,7 @@ function App() {
   let gridSize = 10;
   const [gridArray, setGridArray] = useState(
     Array.from({ length: gridSize }, () =>
-      Array.from({ length: gridSize }, () => "")
+      Array.from({ length: gridSize }, () => " ")
     )
   );
   const [globalMouseDown, setGlobablMouseDown] = useState(null);
@@ -48,16 +48,10 @@ function App() {
     console.log(currentValues.coordinates);
   }, [currentValues]);
 
-  // useEffect(() => {
-  //   //On load fill grid with random letters
-  //   const newArr = [...gridArray];
-  //   newArr.map((item, column) =>
-  //     item.map((box, row) => {
-  //       newArr[column][row] = alphabet[Math.floor(Math.random() * 25)];
-  //       setGridArray(newArr);
-  //     })
-  //   );
-  // }, []);
+  useEffect(() => {
+    addWords();
+    fillGrid();
+  }, []);
   useEffect(() => {
     const onMouseDown = (event) => setGlobablMouseDown(true);
     window.addEventListener("mousedown", onMouseDown);
@@ -123,11 +117,38 @@ function App() {
     );
   }
 
+  function fillGrid() {
+    //On load fill grid with random letters
+    const newArr = [...gridArray];
+    newArr.map((item, column) =>
+      item.map((box, row) => {
+        if (newArr[column][row] === " ") {
+          newArr[column][row] = alphabet[Math.floor(Math.random() * 25)];
+          setGridArray(newArr);
+        }
+      })
+    );
+  }
+
   function addWords() {
-    let words = ["potato"];
+    let words = [
+      "potato",
+      "cat",
+      "house",
+      "mail",
+      "hunter",
+      "ape",
+      "orange",
+      "pear",
+    ];
 
     words.map((word) => {
-      setSuitableWordPlacement(word);
+      let cells = setSuitableWordPlacement(word);
+      const newArr = [...gridArray];
+      cells.map((cell, i) => {
+        newArr[cell[0]][cell[1]] = word[i].toUpperCase();
+        setGridArray(newArr);
+      });
     });
   }
 
@@ -149,44 +170,44 @@ function App() {
       calculateStartPoint(choosenDirection[1], word.length),
     ];
     let lengthMatches = 0;
-    let prevPosition = startingPosition;
+    let currentPosition = startingPosition;
+    let availableCells = [];
 
     for (let i = 0; i < word.length; i++) {
       if (
-        gridArray[choosenDirection[0] + prevPosition[0]][
-          choosenDirection[1] + prevPosition[1]
-        ] === ""
+        gridArray[currentPosition[0]][currentPosition[1]] === " " ||
+        gridArray[currentPosition[0]][currentPosition[1]] === word[i]
       ) {
-        prevPosition = [
-          choosenDirection[0] + prevPosition[0],
-          choosenDirection[1] + prevPosition[1],
-        ];
         lengthMatches++;
+        console.log();
+        availableCells.push(currentPosition);
+        currentPosition = [
+          choosenDirection[0] + currentPosition[0],
+          choosenDirection[1] + currentPosition[1],
+        ];
       } else {
         break;
       }
     }
     if (lengthMatches === word.length) {
-      return true;
+      return availableCells;
     } else {
-      setSuitableWordPlacement(word);
+      return setSuitableWordPlacement(word);
     }
+  }
+  function randomIntFromInterval(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
   function calculateStartPoint(value, wordLength) {
-    let highestValue = gridSize - wordLength;
+    let highestValue = 9 - wordLength;
     switch (value) {
       case 0:
-        return Math.floor(Math.random() * 10);
+        return randomIntFromInterval(0, 9);
       case 1:
-        return Math.floor(Math.random() * highestValue);
+        return randomIntFromInterval(0, highestValue);
       case -1:
-        return Math.floor(
-          Math.random() * (gridSize - wordLength + 1) + wordLength
-        );
-
-      default:
-        return;
+        return randomIntFromInterval(wordLength, 9);
     }
   }
 
