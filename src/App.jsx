@@ -31,6 +31,71 @@ function App() {
     "Z",
   ]);
 
+  let words = [
+    "CARROT",
+    "POTATO",
+    "LEMON",
+    "BANANA",
+    "CHICKEN",
+    "BEEF",
+    "TOMATO",
+    "PEAR",
+  ];
+  let colors = [
+    "#FF6633",
+    "#FFB399",
+    "#FF33FF",
+    "#FFFF99",
+    "#00B3E6",
+    "#E6B333",
+    "#3366E6",
+    "#999966",
+    "#99FF99",
+    "#B34D4D",
+    "#80B300",
+    "#809900",
+    "#E6B3B3",
+    "#6680B3",
+    "#66991A",
+    "#FF99E6",
+    "#CCFF1A",
+    "#FF1A66",
+    "#E6331A",
+    "#33FFCC",
+    "#66994D",
+    "#B366CC",
+    "#4D8000",
+    "#B33300",
+    "#CC80CC",
+    "#66664D",
+    "#991AFF",
+    "#E666FF",
+    "#4DB3FF",
+    "#1AB399",
+    "#E666B3",
+    "#33991A",
+    "#CC9999",
+    "#B3B31A",
+    "#00E680",
+    "#4D8066",
+    "#809980",
+    "#E6FF80",
+    "#1AFF33",
+    "#999933",
+    "#FF3380",
+    "#CCCC00",
+    "#66E64D",
+    "#4D80CC",
+    "#9900B3",
+    "#E64D66",
+    "#4DB380",
+    "#FF4D4D",
+    "#99E6E6",
+    "#6666FF",
+  ];
+
+  const [color, setColor] = useState("red");
+
   let gridSize = 10;
   const [gridArray, setGridArray] = useState(
     Array.from({ length: gridSize }, () =>
@@ -45,7 +110,7 @@ function App() {
   });
 
   useEffect(() => {
-    console.log(currentValues.coordinates);
+    console.log(allValues.coordinates);
   }, [currentValues]);
 
   useEffect(() => {
@@ -64,7 +129,7 @@ function App() {
     const onMouseUp = (event) => {
       setGlobablMouseDown(false);
       setCurrentValues((prevState) => ({
-        ...prevState,
+        letters: [],
         coordinates: [],
       }));
     };
@@ -74,16 +139,6 @@ function App() {
     };
   });
 
-  function setArrays(column, row) {
-    setAllValues((prevState) => ({
-      ...prevState,
-      coordinates: [...prevState.coordinates, [column, row]],
-    }));
-    setCurrentValues((prevState) => ({
-      ...prevState,
-      coordinates: [...prevState.coordinates, [column, row]],
-    }));
-  }
   function isAround(column, row, arr) {
     let positions = [
       [0, 1],
@@ -95,10 +150,10 @@ function App() {
       [-1, 1],
       [1, -1],
     ];
-    let columnTest = column - arr[arr.length - 1][0];
-    let rowTest = row - arr[arr.length - 1][1];
-    let tester = [columnTest, rowTest];
-    return positions.some((a) => tester.every((v, i) => v === a[i]));
+    let newColumn = column - arr[arr.length - 1][0];
+    let newRow = row - arr[arr.length - 1][1];
+    let newCoordinates = [newColumn, newRow];
+    return positions.some((a) => newCoordinates.every((v, i) => v === a[i]));
   }
 
   function compare(column, row) {
@@ -131,22 +186,11 @@ function App() {
   }
 
   function addWords() {
-    let words = [
-      "potato",
-      "cat",
-      "house",
-      "mail",
-      "hunter",
-      "ape",
-      "orange",
-      "pear",
-    ];
-
     words.map((word) => {
       let cells = setSuitableWordPlacement(word);
       const newArr = [...gridArray];
       cells.map((cell, i) => {
-        newArr[cell[0]][cell[1]] = word[i].toUpperCase();
+        newArr[cell[0]][cell[1]] = word[i];
         setGridArray(newArr);
       });
     });
@@ -179,7 +223,7 @@ function App() {
         gridArray[currentPosition[0]][currentPosition[1]] === word[i]
       ) {
         lengthMatches++;
-        console.log();
+
         availableCells.push(currentPosition);
         currentPosition = [
           choosenDirection[0] + currentPosition[0],
@@ -199,6 +243,20 @@ function App() {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
+  function setCurrentValuesArray(column, row, letter) {
+    setCurrentValues((prevState) => ({
+      letters: [...prevState.letters, [letter]],
+      coordinates: [...prevState.coordinates, [column, row]],
+    }));
+  }
+
+  function setAllValuesArray(letter, coordinates) {
+    setAllValues((prevState) => ({
+      letters: [...prevState.letters, [letter]],
+      coordinates: [...prevState.coordinates, coordinates],
+    }));
+  }
+
   function calculateStartPoint(value, wordLength) {
     let highestValue = 9 - wordLength;
     switch (value) {
@@ -211,9 +269,17 @@ function App() {
     }
   }
 
+  useEffect(() => {
+    let arrJoined = currentValues.letters.join("");
+    const test = words.find((e) => e === arrJoined);
+    if (test != undefined) {
+      setAllValuesArray(arrJoined, currentValues.coordinates);
+    }
+  }, [currentValues.letters]);
+
   return (
     <>
-      <button onClick={() => addWords()}>test</button>
+      <button>test</button>
       <div className="grid">
         {gridArray.map((item, row) =>
           item.map((box, column) => (
@@ -222,18 +288,19 @@ function App() {
                 backgroundColor: currentValues.coordinates.some((a) =>
                   [column, row].every((v, i) => v === a[i])
                 )
-                  ? "red"
+                  ? `${color}`
                   : "blue",
               }}
               className="box unselectable"
               onMouseDown={() => {
-                setArrays(column, row);
+                setColor(() => colors[randomIntFromInterval(0, colors.length)]);
+                setCurrentValuesArray(column, row, box);
               }}
               onMouseEnter={() => {
                 var arrayLength = currentValues.coordinates.length;
                 if (currentValues.coordinates < 1 && globalMouseDown === true) {
                   //Stops the website erroring if the user starts there click outside of the grid
-                  setArrays(column, row);
+                  setCurrentValuesArray(column, row, box);
                 } else if (globalMouseDown === true) {
                   if (isAround(column, row, currentValues.coordinates))
                     if (currentValues.coordinates.length > 1) {
@@ -251,11 +318,11 @@ function App() {
                         }));
                       } else {
                         if (compare(column, row)) {
-                          setArrays(column, row);
+                          setCurrentValuesArray(column, row, box);
                         }
                       }
                     } else {
-                      setArrays(column, row);
+                      setCurrentValuesArray(column, row, box);
                     }
                 }
               }}

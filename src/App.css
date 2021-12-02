@@ -9,6 +9,7 @@ body {
   display: flex;
   align-items: center;
   height: 100vh;
+  font-family: "Outfit", sans-serif;
 }
 
 .grid {
@@ -24,7 +25,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 35px;
+  font-size: 30px;
   margin: 7px;
 }
 
