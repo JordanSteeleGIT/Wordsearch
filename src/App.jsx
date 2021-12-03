@@ -287,17 +287,20 @@ function App() {
 
   return (
     <>
-      <button onClick={() => console.log(gridArray)}>test</button>
       <div className="grid">
         {gridArray.map((item, column) =>
           item.map((box, row) => (
             <div
               style={{
-                backgroundColor: currentValues.coordinates.some((a) =>
-                  [column, row].every((v, i) => v === a[i])
-                )
-                  ? `${box[1]}`
-                  : "blue",
+                backgroundColor:
+                  currentValues.coordinates.some((a) =>
+                    [column, row].every((v, i) => v === a[i])
+                  ) ||
+                  allValues.coordinates
+                    .flat(1)
+                    .some((a) => [column, row].every((v, i) => v === a[i]))
+                    ? `${box[1]}`
+                    : "blue",
               }}
               className="box unselectable"
               onMouseDown={() => {
