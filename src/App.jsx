@@ -94,31 +94,31 @@ function App() {
     "#6666FF",
   ];
 
-  const [color, setColor] = useState("red");
-
   let gridSize = 10;
   const [gridArray, setGridArray] = useState(
     Array.from({ length: gridSize }, () =>
-      Array.from({ length: gridSize }, () => " ")
+      Array.from({ length: gridSize }, () => [" ", "red"])
     )
   );
   const [globalMouseDown, setGlobablMouseDown] = useState(null);
-  const [allValues, setAllValues] = useState({ letters: [], coordinates: [] });
+  const [allValues, setAllValues] = useState({
+    letters: [],
+    coordinates: [],
+  });
   const [currentValues, setCurrentValues] = useState({
     letters: [],
     coordinates: [],
   });
-
-  useEffect(() => {
-    console.log(allValues.coordinates);
-  }, [currentValues]);
+  const [color, setColor] = useState("red");
 
   useEffect(() => {
     addWords();
     fillGrid();
   }, []);
   useEffect(() => {
-    const onMouseDown = (event) => setGlobablMouseDown(true);
+    const onMouseDown = (event) => {
+      setGlobablMouseDown(true);
+    };
     window.addEventListener("mousedown", onMouseDown);
     return () => {
       window.removeEventListener("mousedown", onMouseDown);
@@ -127,6 +127,7 @@ function App() {
 
   useEffect(() => {
     const onMouseUp = (event) => {
+      setColor(colors[randomIntFromInterval(0, colors.length)]);
       setGlobablMouseDown(false);
       setCurrentValues((prevState) => ({
         letters: [],
@@ -177,8 +178,8 @@ function App() {
     const newArr = [...gridArray];
     newArr.map((item, column) =>
       item.map((box, row) => {
-        if (newArr[column][row] === " ") {
-          newArr[column][row] = alphabet[Math.floor(Math.random() * 25)];
+        if (newArr[column][row][0] === " ") {
+          newArr[column][row][0] = alphabet[Math.floor(Math.random() * 25)];
           setGridArray(newArr);
         }
       })
@@ -190,7 +191,7 @@ function App() {
       let cells = setSuitableWordPlacement(word);
       const newArr = [...gridArray];
       cells.map((cell, i) => {
-        newArr[cell[0]][cell[1]] = word[i];
+        newArr[cell[0]][cell[1]][0] = word[i];
         setGridArray(newArr);
       });
     });
@@ -219,8 +220,8 @@ function App() {
 
     for (let i = 0; i < word.length; i++) {
       if (
-        gridArray[currentPosition[0]][currentPosition[1]] === " " ||
-        gridArray[currentPosition[0]][currentPosition[1]] === word[i]
+        gridArray[currentPosition[0]][currentPosition[1]][0] === " " ||
+        gridArray[currentPosition[0]][currentPosition[1]][0] === word[i]
       ) {
         lengthMatches++;
 
@@ -244,10 +245,12 @@ function App() {
   }
 
   function setCurrentValuesArray(column, row, letter) {
+    changeColor(column, row);
     setCurrentValues((prevState) => ({
       letters: [...prevState.letters, [letter]],
       coordinates: [...prevState.coordinates, [column, row]],
     }));
+    console.log(column, row);
   }
 
   function setAllValuesArray(letter, coordinates) {
@@ -269,38 +272,42 @@ function App() {
     }
   }
 
+  function changeColor(col, row) {
+    const newArr = [...gridArray];
+    newArr[col][row][1] = color;
+    setGridArray(newArr);
+  }
   useEffect(() => {
     let arrJoined = currentValues.letters.join("");
     const test = words.find((e) => e === arrJoined);
-    if (test != undefined) {
+    if (test !== undefined) {
       setAllValuesArray(arrJoined, currentValues.coordinates);
     }
   }, [currentValues.letters]);
 
   return (
     <>
-      <button>test</button>
+      <button onClick={() => console.log(gridArray)}>test</button>
       <div className="grid">
-        {gridArray.map((item, row) =>
-          item.map((box, column) => (
+        {gridArray.map((item, column) =>
+          item.map((box, row) => (
             <div
               style={{
                 backgroundColor: currentValues.coordinates.some((a) =>
                   [column, row].every((v, i) => v === a[i])
                 )
-                  ? `${color}`
+                  ? `${box[1]}`
                   : "blue",
               }}
               className="box unselectable"
               onMouseDown={() => {
-                setColor(() => colors[randomIntFromInterval(0, colors.length)]);
-                setCurrentValuesArray(column, row, box);
+                setCurrentValuesArray(column, row, box[0]);
               }}
               onMouseEnter={() => {
                 var arrayLength = currentValues.coordinates.length;
                 if (currentValues.coordinates < 1 && globalMouseDown === true) {
                   //Stops the website erroring if the user starts there click outside of the grid
-                  setCurrentValuesArray(column, row, box);
+                  setCurrentValuesArray(column, row, box[0]);
                 } else if (globalMouseDown === true) {
                   if (isAround(column, row, currentValues.coordinates))
                     if (currentValues.coordinates.length > 1) {
@@ -318,16 +325,16 @@ function App() {
                         }));
                       } else {
                         if (compare(column, row)) {
-                          setCurrentValuesArray(column, row, box);
+                          setCurrentValuesArray(column, row, box[0]);
                         }
                       }
                     } else {
-                      setCurrentValuesArray(column, row, box);
+                      setCurrentValuesArray(column, row, box[0]);
                     }
                 }
               }}
             >
-              {box}
+              {box[0]}
             </div>
           ))
         )}

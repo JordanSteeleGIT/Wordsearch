@@ -1,7 +1,7 @@
-if the value is 0 it can go anywhere between 0-10
-if the value is 1 || -1 the last letter has to be the difference between size of word and grid size example:
 
-word size = 4
-direction = [0,1]
 
-answer : [1-10, 1-6]
+                backgroundColor: currentValues.coordinates.some((a) =>
+                  [column, row].every((v, i) => v === a[i])
+                    ? `${color}`
+                    : "blue"
+                ),
