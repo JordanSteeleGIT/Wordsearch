@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
 /*Program isnt 100% complete. Has 2 major issues, which are:
-  -If you go over the word and then add something to the end of the word ie "potatoes" that will still count
+
   -You cant overright a highlighted cell
 */
 function App() {
@@ -132,6 +132,7 @@ function App() {
     const onMouseUp = (event) => {
       setColor(colors[randomIntFromInterval(0, colors.length)]);
       setGlobablMouseDown(false);
+      isCorrect();
       setCurrentValues((prevState) => ({
         letters: [],
         coordinates: [],
@@ -284,22 +285,18 @@ function App() {
     // const test = words.find((e) => e === arrJoined);
     console.log(test);
 
-    if (test === true) {
-      setGridArray(backUpState);
-    } else {
-      const newArr = [...gridArray];
-      newArr[col][row][1] = color;
-      setGridArray(newArr);
-    }
+    const newArr = [...gridArray];
+    newArr[col][row][1] = color;
+    setGridArray(newArr);
   }
 
-  useEffect(() => {
+  function isCorrect() {
     let arrJoined = currentValues.letters.join("");
     const test = words.find((e) => e === arrJoined);
     if (test !== undefined) {
       setAllValuesArray(arrJoined, currentValues.coordinates);
     }
-  }, [currentValues.letters]);
+  }
 
   return (
     <>
