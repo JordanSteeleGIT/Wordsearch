@@ -37,3 +37,15 @@ body {
   -ms-user-select: none;
   user-select: none;
 }
+
+.page-content {
+  display: flex;
+}
+
+.list-container {
+  margin-top: 50px;
+}
+
+.list-container ul {
+  list-style: none;
+}

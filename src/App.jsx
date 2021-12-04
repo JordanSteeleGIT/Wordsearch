@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+/*Program isnt 100% complete. Has 2 major issues, which are:
+  -If you go over the word and then add something to the end of the word ie "potatoes" that will still count
+  -You cant overright a highlighted cell
 
+
+*/
 function App() {
   const [alphabet, setAlphabet] = useState([
     "A",
@@ -139,7 +144,9 @@ function App() {
       window.removeEventListener("mouseup", onMouseUp);
     };
   });
-
+  useEffect(() => {
+    console.log(allValues.letters);
+  }, [allValues]);
   function isAround(column, row, arr) {
     let positions = [
       [0, 1],
@@ -245,12 +252,10 @@ function App() {
   }
 
   function setCurrentValuesArray(column, row, letter) {
-    changeColor(column, row);
     setCurrentValues((prevState) => ({
       letters: [...prevState.letters, [letter]],
       coordinates: [...prevState.coordinates, [column, row]],
     }));
-    console.log(column, row);
   }
 
   function setAllValuesArray(letter, coordinates) {
@@ -273,10 +278,23 @@ function App() {
   }
 
   function changeColor(col, row) {
-    const newArr = [...gridArray];
-    newArr[col][row][1] = color;
-    setGridArray(newArr);
+    let backUpState = JSON.parse(JSON.stringify(gridArray));
+    let test = allValues.coordinates
+      .flat(1)
+      .some((a) => [col, row].every((v, i) => v === a[i]));
+    // let arrJoined = currentValues.letters.join("");
+    // const test = words.find((e) => e === arrJoined);
+    console.log(test);
+
+    if (test === true) {
+      setGridArray(backUpState);
+    } else {
+      const newArr = [...gridArray];
+      newArr[col][row][1] = color;
+      setGridArray(newArr);
+    }
   }
+
   useEffect(() => {
     let arrJoined = currentValues.letters.join("");
     const test = words.find((e) => e === arrJoined);
@@ -287,60 +305,95 @@ function App() {
 
   return (
     <>
-      <div className="grid">
-        {gridArray.map((item, column) =>
-          item.map((box, row) => (
-            <div
-              style={{
-                backgroundColor:
-                  currentValues.coordinates.some((a) =>
-                    [column, row].every((v, i) => v === a[i])
-                  ) ||
-                  allValues.coordinates
-                    .flat(1)
-                    .some((a) => [column, row].every((v, i) => v === a[i]))
-                    ? `${box[1]}`
-                    : "blue",
-              }}
-              className="box unselectable"
-              onMouseDown={() => {
-                setCurrentValuesArray(column, row, box[0]);
-              }}
-              onMouseEnter={() => {
-                var arrayLength = currentValues.coordinates.length;
-                if (currentValues.coordinates < 1 && globalMouseDown === true) {
-                  //Stops the website erroring if the user starts there click outside of the grid
+      <button
+        onClick={() =>
+          console.log(
+            currentValues.letters.some((a) =>
+              "BANANA".every((v, i) => v === a[i])
+            )
+          )
+        }
+      >
+        test
+      </button>
+      <div className="page-content">
+        <div className="grid">
+          {gridArray.map((item, column) =>
+            item.map((box, row) => (
+              <div
+                style={{
+                  backgroundColor:
+                    currentValues.coordinates.some((a) =>
+                      [column, row].every((v, i) => v === a[i])
+                    ) ||
+                    allValues.coordinates
+                      .flat(1)
+                      .some((a) => [column, row].every((v, i) => v === a[i]))
+                      ? `${box[1]}`
+                      : "blue",
+                }}
+                className="box unselectable"
+                onMouseDown={() => {
                   setCurrentValuesArray(column, row, box[0]);
-                } else if (globalMouseDown === true) {
-                  if (isAround(column, row, currentValues.coordinates))
-                    if (currentValues.coordinates.length > 1) {
-                      if (
-                        column ===
-                          currentValues.coordinates[arrayLength - 2][0] &&
-                        row === currentValues.coordinates[arrayLength - 2][1]
-                      ) {
-                        //delete the previous input
-                        let arrLastRemoved = [...currentValues.coordinates];
-                        arrLastRemoved.pop();
-                        setCurrentValues((prevState) => ({
-                          ...prevState,
-                          coordinates: [...arrLastRemoved],
-                        }));
-                      } else {
-                        if (compare(column, row)) {
-                          setCurrentValuesArray(column, row, box[0]);
+                  changeColor(column, row);
+                }}
+                onMouseEnter={() => {
+                  var arrayLength = currentValues.coordinates.length;
+                  if (
+                    currentValues.coordinates < 1 &&
+                    globalMouseDown === true
+                  ) {
+                    //Stops the website erroring if the user starts there click outside of the grid
+                    setCurrentValuesArray(column, row, box[0]);
+                    changeColor(column, row);
+                  } else if (globalMouseDown === true) {
+                    if (isAround(column, row, currentValues.coordinates))
+                      if (currentValues.coordinates.length > 1) {
+                        if (
+                          column ===
+                            currentValues.coordinates[arrayLength - 2][0] &&
+                          row === currentValues.coordinates[arrayLength - 2][1]
+                        ) {
+                          //delete the previous input
+                          let arrLastRemoved = [...currentValues.coordinates];
+                          arrLastRemoved.pop();
+                          setCurrentValues((prevState) => ({
+                            ...prevState,
+                            coordinates: [...arrLastRemoved],
+                          }));
+                        } else {
+                          if (compare(column, row)) {
+                            setCurrentValuesArray(column, row, box[0]);
+                            changeColor(column, row);
+                          }
                         }
+                      } else {
+                        setCurrentValuesArray(column, row, box[0]);
+                        changeColor(column, row);
                       }
-                    } else {
-                      setCurrentValuesArray(column, row, box[0]);
-                    }
-                }
-              }}
-            >
-              {box[0]}
-            </div>
-          ))
-        )}
+                  }
+                }}
+              >
+                {box[0]}
+              </div>
+            ))
+          )}
+        </div>
+        <div className="list-container">
+          <ul>
+            {words.map((word) => (
+              <li
+                style={{
+                  textDecoration: allValues.letters.flat(1).includes(word)
+                    ? "line-through"
+                    : "none",
+                }}
+              >
+                {word}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </>
   );
