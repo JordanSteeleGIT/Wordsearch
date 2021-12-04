@@ -3,8 +3,6 @@ import "./App.css";
 /*Program isnt 100% complete. Has 2 major issues, which are:
   -If you go over the word and then add something to the end of the word ie "potatoes" that will still count
   -You cant overright a highlighted cell
-
-
 */
 function App() {
   const [alphabet, setAlphabet] = useState([
@@ -305,17 +303,6 @@ function App() {
 
   return (
     <>
-      <button
-        onClick={() =>
-          console.log(
-            currentValues.letters.some((a) =>
-              "BANANA".every((v, i) => v === a[i])
-            )
-          )
-        }
-      >
-        test
-      </button>
       <div className="page-content">
         <div className="grid">
           {gridArray.map((item, column) =>
