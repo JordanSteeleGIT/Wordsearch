@@ -18,15 +18,16 @@ body {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
+  border: 2px solid black;
 }
 
 .box {
-  border: 2px solid black;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 30px;
   margin: 7px;
+  border-radius: 50px;
 }
 
 .unselectable {

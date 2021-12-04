@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-/*Program isnt 100% complete. Has 2 major issues, which are:
-
-  -You cant overright a highlighted cell
+/*
+Ideally each highlighted answer has its own color
 */
 function App() {
   const [alphabet, setAlphabet] = useState([
@@ -44,63 +43,11 @@ function App() {
     "TOMATO",
     "PEAR",
   ];
-  let colors = [
-    "#FF6633",
-    "#FFB399",
-    "#FF33FF",
-    "#FFFF99",
-    "#00B3E6",
-    "#E6B333",
-    "#3366E6",
-    "#999966",
-    "#99FF99",
-    "#B34D4D",
-    "#80B300",
-    "#809900",
-    "#E6B3B3",
-    "#6680B3",
-    "#66991A",
-    "#FF99E6",
-    "#CCFF1A",
-    "#FF1A66",
-    "#E6331A",
-    "#33FFCC",
-    "#66994D",
-    "#B366CC",
-    "#4D8000",
-    "#B33300",
-    "#CC80CC",
-    "#66664D",
-    "#991AFF",
-    "#E666FF",
-    "#4DB3FF",
-    "#1AB399",
-    "#E666B3",
-    "#33991A",
-    "#CC9999",
-    "#B3B31A",
-    "#00E680",
-    "#4D8066",
-    "#809980",
-    "#E6FF80",
-    "#1AFF33",
-    "#999933",
-    "#FF3380",
-    "#CCCC00",
-    "#66E64D",
-    "#4D80CC",
-    "#9900B3",
-    "#E64D66",
-    "#4DB380",
-    "#FF4D4D",
-    "#99E6E6",
-    "#6666FF",
-  ];
 
   let gridSize = 10;
   const [gridArray, setGridArray] = useState(
     Array.from({ length: gridSize }, () =>
-      Array.from({ length: gridSize }, () => [" ", "red"])
+      Array.from({ length: gridSize }, () => " ")
     )
   );
   const [globalMouseDown, setGlobablMouseDown] = useState(null);
@@ -112,7 +59,6 @@ function App() {
     letters: [],
     coordinates: [],
   });
-  const [color, setColor] = useState("red");
 
   useEffect(() => {
     addWords();
@@ -130,7 +76,6 @@ function App() {
 
   useEffect(() => {
     const onMouseUp = (event) => {
-      setColor(colors[randomIntFromInterval(0, colors.length)]);
       setGlobablMouseDown(false);
       isCorrect();
       setCurrentValues((prevState) => ({
@@ -184,8 +129,8 @@ function App() {
     const newArr = [...gridArray];
     newArr.map((item, column) =>
       item.map((box, row) => {
-        if (newArr[column][row][0] === " ") {
-          newArr[column][row][0] = alphabet[Math.floor(Math.random() * 25)];
+        if (newArr[column][row] === " ") {
+          newArr[column][row] = alphabet[Math.floor(Math.random() * 25)];
           setGridArray(newArr);
         }
       })
@@ -197,7 +142,7 @@ function App() {
       let cells = setSuitableWordPlacement(word);
       const newArr = [...gridArray];
       cells.map((cell, i) => {
-        newArr[cell[0]][cell[1]][0] = word[i];
+        newArr[cell[0]][cell[1]] = word[i];
         setGridArray(newArr);
       });
     });
@@ -276,20 +221,6 @@ function App() {
     }
   }
 
-  function changeColor(col, row) {
-    let backUpState = JSON.parse(JSON.stringify(gridArray));
-    let test = allValues.coordinates
-      .flat(1)
-      .some((a) => [col, row].every((v, i) => v === a[i]));
-    // let arrJoined = currentValues.letters.join("");
-    // const test = words.find((e) => e === arrJoined);
-    console.log(test);
-
-    const newArr = [...gridArray];
-    newArr[col][row][1] = color;
-    setGridArray(newArr);
-  }
-
   function isCorrect() {
     let arrJoined = currentValues.letters.join("");
     const test = words.find((e) => e === arrJoined);
@@ -313,13 +244,12 @@ function App() {
                     allValues.coordinates
                       .flat(1)
                       .some((a) => [column, row].every((v, i) => v === a[i]))
-                      ? `${box[1]}`
-                      : "blue",
+                      ? "red"
+                      : "transparent",
                 }}
                 className="box unselectable"
                 onMouseDown={() => {
-                  setCurrentValuesArray(column, row, box[0]);
-                  changeColor(column, row);
+                  setCurrentValuesArray(column, row, box);
                 }}
                 onMouseEnter={() => {
                   var arrayLength = currentValues.coordinates.length;
@@ -328,8 +258,7 @@ function App() {
                     globalMouseDown === true
                   ) {
                     //Stops the website erroring if the user starts there click outside of the grid
-                    setCurrentValuesArray(column, row, box[0]);
-                    changeColor(column, row);
+                    setCurrentValuesArray(column, row, box);
                   } else if (globalMouseDown === true) {
                     if (isAround(column, row, currentValues.coordinates))
                       if (currentValues.coordinates.length > 1) {
@@ -347,18 +276,16 @@ function App() {
                           }));
                         } else {
                           if (compare(column, row)) {
-                            setCurrentValuesArray(column, row, box[0]);
-                            changeColor(column, row);
+                            setCurrentValuesArray(column, row, box);
                           }
                         }
                       } else {
-                        setCurrentValuesArray(column, row, box[0]);
-                        changeColor(column, row);
+                        setCurrentValuesArray(column, row, box);
                       }
                   }
                 }}
               >
-                {box[0]}
+                {box}
               </div>
             ))
           )}
